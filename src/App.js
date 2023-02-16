@@ -4,14 +4,13 @@ import authServices from "./services/auth";
 import Loginform from "./components/Loginform";
 import Blogs from "./components/Blogs";
 import Blogform from "./components/Blogform";
+import Togglable from "./components/Togglable";
 
 const App = () => {
   const [blogs, setBlogs] = useState([]);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [title, setTitle] = useState("");
-  const [url, setUrl] = useState("");
-  const [author, setAuthor] = useState("");
+
   const [user, setUser] = useState(undefined);
   const [message, setMessage] = useState(null);
 
@@ -22,7 +21,7 @@ const App = () => {
   useEffect(() => {
     const storeduser = window.localStorage.getItem("user");
     if (storeduser) {
-      const userObj = JSON.parse(storeduser)
+      const userObj = JSON.parse(storeduser);
       setUser(userObj);
       blogService.setToken(userObj.token);
     }
@@ -33,8 +32,7 @@ const App = () => {
     try {
       const user = await authServices.login(username, password);
       setUser(user);
-      window.localStorage.setItem("user",JSON.stringify(user)
-      );
+      window.localStorage.setItem("user", JSON.stringify(user));
       blogService.setToken(user.token);
       setPassword("");
       setUsername("");
@@ -51,29 +49,40 @@ const App = () => {
     blogService.setToken("");
   };
 
-  const handleSubmit = async (event) => {
-    event.preventDefault();
+  const createBlog = async (newBlog) => {
     try {
-      const blog = await blogService.create({
-        title,author,url
-      })
-      setAuthor('')
-      setTitle('')
-      setUrl('')
-      setBlogs(blogs=>{
-        return blogs.concat(blog)
-      })
+      const blog = await blogService.create(newBlog);
+      setBlogs((blogs) => {
+        return blogs.concat({
+          ...blog,
+          user: {
+            name: user.name,
+            id: blog.user,
+            username: user.username,
+          },
+        });
+      });
       setMessage(`new blog ${blog.title} by ${blog.author} added`);
       setTimeout(() => {
         setMessage(null);
       }, 5000);
-    }catch{
+    } catch {
       setMessage("blog cannot be created");
       setTimeout(() => {
         setMessage(null);
       }, 5000);
     }
-  }
+  };
+
+  const handleDelete = async (id, title, author) => {
+    if (window.confirm(`Remove blog ${title} by ${author}`))
+      await blogService.remove(id);
+    setBlogs((blogs) => {
+      return blogs.filter((blog) => {
+        return blog.id !== id;
+      });
+    });
+  };
   return (
     <div>
       {message && <p>{message}</p>}
@@ -93,16 +102,10 @@ const App = () => {
             {`${user.name} is logged in`}
             <button onClick={handleLogout}>logout</button>
           </p>
-          <Blogs blogs={blogs} />
-          <Blogform
-            author={author}
-            title={title}
-            url={url}
-            setAuthor={(a) => setAuthor(a)}
-            setTitle={(t) => setTitle(t)}
-            setUrl={(b) => setUrl(b)}
-            handleSubmit= {handleSubmit}
-          />
+          <Blogs blogs={blogs} handleDelete={handleDelete} />
+          <Togglable buttonLabel={"create"}>
+            <Blogform createBlog={createBlog} />
+          </Togglable>
         </>
       )}
     </div>

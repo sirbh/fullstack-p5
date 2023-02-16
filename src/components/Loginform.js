@@ -30,7 +30,7 @@ const Loginform = ({
         <button type="submit">login</button>
       </form>
     </>
-  );
-};
+  )
+}
 
-export default Loginform;
+export default Loginform
