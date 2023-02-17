@@ -83,6 +83,23 @@ const App = () => {
       });
     });
   };
+
+  const handleLike = async (blog) => {
+    const updatedBlog = await blogService.update(
+      {
+        ...blog,
+        user: blog.user.id,
+        likes: blog.likes + 1,
+      },
+      blog.id
+    );
+    const blogIndex = blogs.findIndex(blog => blog.id===updatedBlog.id);
+    setBlogs(blogs => {
+      const blogsCopy = [...blogs];
+      blogsCopy[blogIndex].likes = updatedBlog.likes;
+      return blogsCopy;
+    });
+  };
   return (
     <div>
       {message && <p>{message}</p>}
@@ -100,9 +117,9 @@ const App = () => {
           <h2>Blogs</h2>
           <p>
             {`${user.name} is logged in`}
-            <button onClick={handleLogout}>logout</button>
+            <button name="logout" onClick={handleLogout}>logout</button>
           </p>
-          <Blogs blogs={blogs} handleDelete={handleDelete} />
+          <Blogs blogs={blogs} user={user} handleDelete={handleDelete} handleLike={handleLike}/>
           <Togglable buttonLabel={"create"}>
             <Blogform createBlog={createBlog} />
           </Togglable>

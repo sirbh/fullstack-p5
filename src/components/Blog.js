@@ -1,9 +1,7 @@
-import { useEffect, useState } from "react";
-import blogServices from "../services/blogs";
+import { useState } from "react";
 
-const Blog = ({ blog, handleDelete }) => {
+const Blog = ({ blog, handleDelete, handleLike, user }) => {
   const [showDetails, setShowDetails] = useState(false);
-  const [currentBlog, setCurrentBlog] = useState();
 
   const blogStyle = {
     paddingTop: 10,
@@ -13,41 +11,12 @@ const Blog = ({ blog, handleDelete }) => {
     marginBottom: 5,
   };
 
-  const loggedInUsername = JSON.parse(
-    window.localStorage.getItem("user")
-  ).username;
-  const likeHandler = async () => {
-    const updatedBlog = await blogServices.update(
-      {
-        ...currentBlog,
-        user: currentBlog.user.id,
-        likes: currentBlog.likes + 1,
-      },
-      blog.id
-    );
-
-    setCurrentBlog((blog) => {
-      return {
-        ...blog,
-        likes: updatedBlog.likes,
-      };
-    });
-  };
-
-  useEffect(() => {
-    setCurrentBlog(blog);
-    console.log("i ran");
-  }, [blog]);
-
-  if (!currentBlog) {
-    return <div></div>;
-  }
-
   return (
-    <div style={blogStyle}>
+    <div style={blogStyle} className="blog">
       <p>
-        {currentBlog.title} {currentBlog.author}
+        {blog.title} {blog.author}
         <button
+          name="view"
           onClick={() => {
             setShowDetails((prev) => !prev);
           }}
@@ -57,20 +26,24 @@ const Blog = ({ blog, handleDelete }) => {
       </p>
       {showDetails && (
         <>
-          <a href={currentBlog.url}>{currentBlog.url}</a>
+          <a href={blog.url}>{blog.url}</a>
           <p>
-            {currentBlog.likes}
-            <button onClick={likeHandler}>Like</button>
-          </p>
-          <p>{currentBlog.user.name}</p>
-          {loggedInUsername === blog.user.username ? (
+            {blog.likes}
             <button
+              name="like"
               onClick={() => {
-                handleDelete(
-                  currentBlog.id,
-                  currentBlog.title,
-                  currentBlog.author
-                );
+                handleLike(blog);
+              }}
+            >
+              Like
+            </button>
+          </p>
+          <p>{blog.user.name}</p>
+          {user.username === blog.user.username ? (
+            <button
+              name="delete"
+              onClick={() => {
+                handleDelete(blog.id, blog.title, blog.author);
               }}
             >
               remove

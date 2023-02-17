@@ -36,9 +36,9 @@ const remove = (id) => {
     headers: {
       Authorization: token,
     },
-  }) 
-  return request.then(data=>data.response)
-}
+  });
+  return request.then(data => data.response);
+};
 
-// eslint-disable-next-line import/no-anonymous-default-export
+
 export default { getAll, create, setToken, update, remove };
